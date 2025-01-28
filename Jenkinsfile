@@ -1,48 +1,79 @@
 pipeline {
     agent any
-	
+
     environment {
         GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-key')
-	GIT_TOKEN = credentials('git-token')
+        GIT_TOKEN = credentials('git-token')
     }
-	
+
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'main', 
-                    credentialsId: 'your-credentials-id', 
-                    url: 'https://github.com/Shantanu3009/gcp-jenkins-pipeline.git'
-            }
-        }
-        
-        stage('Terraform Init') {
-            steps {
                 script {
-                    sh 'terraform init'
-                }
-            }
-        }
-        
-        stage('Terraform Plan') {
-            steps {
-                script {
-                    sh 'terraform plan -out=tfplan'
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: 'main']],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/Shantanu3009/gcp-jenkins-pipeline.git',
+                            credentialsId: 'git-token'
+                        ]]
+                    ])
                 }
             }
         }
 
-	    stage('Manual Approval') {
+        stage('Terraform Init') {
             steps {
-                input "Approve?"
+                script {
+                    try {
+                        sh 'terraform init'
+                    } catch (Exception e) {
+                        error("Terraform Init failed: ${e.message}")
+                    }
+                }
             }
         }
-	    
+
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    try {
+                        sh 'terraform plan -out=tfplan'
+                    } catch (Exception e) {
+                        error("Terraform Plan failed: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        stage('Manual Approval') {
+            steps {
+                input message: "Approve the Terraform changes?"
+            }
+        }
+
         stage('Terraform Apply') {
             steps {
                 script {
-                    sh 'terraform apply tfplan'
+                    try {
+                        sh 'terraform apply -auto-approve tfplan'
+                    } catch (Exception e) {
+                        error("Terraform Apply failed: ${e.message}")
+                    }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check the logs for details.'
         }
     }
 }

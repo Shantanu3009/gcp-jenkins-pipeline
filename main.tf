@@ -1,7 +1,5 @@
-resource "google_cloud_bucket" "my-bucket" {
-name          = "shan-github-bucket-1"
-project       = "shan-practice-dev"
-location      = "US"
-force_destroy = true
-public_access_prevention = "enforced"
+resource "google_storage_bucket" "my_bucket" {
+  name     = "my-bucket-name"
+  location = "US"
+  storage_class = "STANDARD"
 }

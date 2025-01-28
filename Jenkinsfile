@@ -9,7 +9,9 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-               git "https://${GIT_TOKEN}@github.com/Shantanu3009/gcp-jenkins-pipeline.git"
+                git branch: 'main', 
+                    credentialsId: 'your-credentials-id', 
+                    url: 'https://github.com/Shantanu3009/gcp-jenkins-pipeline.git'
             }
         }
         

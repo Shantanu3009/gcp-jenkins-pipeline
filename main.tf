@@ -5,7 +5,7 @@ resource "google_storage_bucket" "my_bucket" {
   project       = "shan-practice-dev"
 }
 
-resource "google_storage_bucket" "my_bucket" {
+resource "google_storage_bucket" "my_bucket1" {
   name          = "jenkins-pipeline-bucket2"
   location      = "US"
   storage_class = "STANDARD"

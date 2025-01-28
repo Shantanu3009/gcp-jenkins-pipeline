@@ -10,14 +10,18 @@ pipeline {
         stage('Git Checkout') {
             steps {
                 script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: 'main']],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/Shantanu3009/gcp-jenkins-pipeline.git',
-                            credentialsId: 'git-token'
-                        ]]
-                    ])
+                    try {
+                        checkout([
+                            $class: 'GitSCM',
+                            branches: [[name: 'main']],
+                            userRemoteConfigs: [[
+                                url: 'https://github.com/Shantanu3009/gcp-jenkins-pipeline.git',
+                                credentialsId: 'git-token'
+                            ]]
+                        ])
+                    } catch (Exception e) {
+                        error("Git Checkout failed: ${e.message}")
+                    }
                 }
             }
         }
@@ -29,6 +33,18 @@ pipeline {
                         sh 'terraform init'
                     } catch (Exception e) {
                         error("Terraform Init failed: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                script {
+                    try {
+                        sh 'terraform validate'
+                    } catch (Exception e) {
+                        error("Terraform Validate failed: ${e.message}")
                     }
                 }
             }
